@@ -5,7 +5,7 @@ websocket API.html：用一个小DEMO 介绍原生websocket API
 
 websocket.html：用一个小DEMO 介绍二次封装的websocket API（支持断网重连、自动心跳等功能）
 
-## 启动
+## 运行项目
 
 **安装依赖**
 ```
