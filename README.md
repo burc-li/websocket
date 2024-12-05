@@ -1,9 +1,9 @@
 # websocket
 
 ## 简介
-websocket API：用一个小DEMO 简单介绍 websocket 的API
+websocket API 目录：用一个小DEMO 简单介绍 websocket 的API
 
-websocket：对 websocket 进行封装，支持断网重连、自动心跳等功能
+websocket 目录：对 websocket 进行封装，支持断网重连、自动心跳等功能
 
 ## websocket API
 
