@@ -1,0 +1,42 @@
+<!D0CTYPE html>
+  <html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <p>websocket 封装</p>
+    <!-- 优势: 双向通信，持久链接,发送的消息增加帧 是非常小的，支持多种数据格式天生支持跨域通信 -->
+    <script type="importmap">
+      {
+        "imports": {
+          "webSocketClient": "./webSocketClient.js"
+        }
+      }
+    </script>
+    <script type="module">
+      import webSocketClient from 'webSocketClient'
+      const ws = new webSocketClient('ws://localhost:3000')
+
+      ws.connect()
+
+      ws.onopen(() => {
+        console.log('WS 连接已经建立');
+        ws.send('Hello, server!');
+      })
+      ws.onmessage((event) => {
+        console.log('WS 收到服务器消息：', event.data);
+      })
+      ws.onerror((event) => {
+        console.error('WS 连接出现错误：', event);
+      })
+      ws.onclose(() => {
+        console.log('WS 连接已经关闭');
+      })
+    </script>
+  </body>
+
+  </html>
