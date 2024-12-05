@@ -1,0 +1,26 @@
+# .gitignore
+.DS_Store
+node_modules
+dist
+.history
+.eslintcache
+Monet
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+yarn.lock*
+package-lock.json
+vite.config.mjs.*
+
+# Editor directories and files
+.idea
+.gulp
+
+# auto impport 生成文件，避免冲突
+auto-imports.d.ts
+components.d.ts
+
+storybook-static
