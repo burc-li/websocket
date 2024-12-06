@@ -11,9 +11,13 @@ class WebSocketClient extends Dispatcher {
   maxReconnectAttempts = 5
   // 重连间隔
   reconnectInterval = 1000 * 10
+  // 断网重连计时器id
+  reconnectTimer = undefined
+  // 正在重连
+  reconnecting = false
   // 发送心跳数据间隔
   heartbeatInterval = 1000 * 30
-  // 计时器id
+  // 心跳检测计时器id
   heartbeatTimer = undefined
   // 彻底终止ws
   stopWs = false
@@ -36,6 +40,7 @@ class WebSocketClient extends Dispatcher {
   onerror(callBack) {
     this.addEventListener('error', callBack)
   }
+
   // 消息发送
   send(message) {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
@@ -57,7 +62,7 @@ class WebSocketClient extends Dispatcher {
 
     // websocket连接成功
     this.socket.onopen = event => {
-      this.stopWs = false                              
+      this.stopWs = false
       // 重置重连尝试成功连接
       this.reconnectAttempts = 0
       // 在连接成功时停止当前的心跳检测并重新启动
@@ -70,12 +75,13 @@ class WebSocketClient extends Dispatcher {
       this.dispatchEvent('message', event)
       this.startHeartbeat()
     }
-                                                       
+
     this.socket.onclose = event => {
       if (this.reconnectAttempts === 0) {
         console.log('WebSocket', `连接断开[onclose]...    ${this.url}`)
       }
-      if (!this.stopWs) {
+      // 和服务端约定，code码若为1000，代表服务端主动关闭连接，不进行重连操作
+      if (!this.stopWs && event.code !== 1000) {
         this.handleReconnect()
       }
       this.dispatchEvent('close', event)
@@ -85,23 +91,54 @@ class WebSocketClient extends Dispatcher {
       if (this.reconnectAttempts === 0) {
         console.log('WebSocket', `连接异常[onerror]...    ${this.url}`)
       }
-      this.closeHeartbeat()
+      this.handleReconnect()
       this.dispatchEvent('error', event)
     }
   }
 
   // 断网重连逻辑
   handleReconnect() {
+    if(this.reconnecting) return 
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      console.log('WebSocket', `尝试重连... (${this.reconnectAttempts}/${this.maxReconnectAttempts})       ${this.url}`)
       this.reconnectAttempts++
-      setTimeout(() => {
-        console.log('WebSocket', `尝试重连... (${this.reconnectAttempts}/${this.maxReconnectAttempts})       ${this.url}`)
+      this.reconnecting = true
+      this.reconnectTimer = setTimeout(() => {
         this.connect()
+        this.reconnecting = false
       }, this.reconnectInterval)
     } else {
       this.closeHeartbeat()
       console.log('WebSocket', `最大重连失败，终止重连: ${this.url}`)
     }
+  }
+
+  // 关闭断网重连
+  closeReconnect() {
+    clearInterval(this.reconnectTimer)
+    this.reconnectTimer = undefined
+  }
+
+  // 开始心跳检测 -> 定时发送心跳消息
+  startHeartbeat() {
+    if (this.stopWs) return
+    if (this.heartbeatTimer) {
+      this.closeHeartbeat()
+    }
+    this.heartbeatTimer = setInterval(() => {
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        this.socket.send(JSON.stringify({ type: 'heartBeat', data: {} }))
+        console.log('WebSocket', '送心跳数据...')
+      } else {
+        console.error('[WebSocket] 未连接')
+      }
+    }, this.heartbeatInterval)
+  }
+
+  // 关闭心跳
+  closeHeartbeat() {
+    clearInterval(this.heartbeatTimer)
+    this.heartbeatTimer = undefined
   }
 
   // 关闭连接
@@ -115,29 +152,8 @@ class WebSocketClient extends Dispatcher {
       this.removeEventListener('close')
       this.removeEventListener('error')
     }
+    this.closeReconnect()
     this.closeHeartbeat()
-  }
-
-  // 开始心跳检测 -> 定时发送心跳消息
-  startHeartbeat() {
-    if (this.stopWs) return
-    if (this.heartbeatTimer) {
-      this.closeHeartbeat()
-    }
-    this.heartbeatTimer = setInterval(() => {
-      if (this.socket) {
-        this.socket.send(JSON.stringify({ type: 'heartBeat', data: {} }))
-        console.log('WebSocket', '送心跳数据...')
-      } else {
-        console.error('[WebSocket] 未连接')
-      }
-    }, this.heartbeatInterval)
-  }
-
-  // 关闭心跳
-  closeHeartbeat() {
-    clearInterval(this.heartbeatTimer)
-    this.heartbeatTimer = undefined
   }
 }
 

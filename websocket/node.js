@@ -30,7 +30,7 @@ wss.on('connection', ws => {
       const decodedData = data.toString('utf-8');
       console.log('[服务器.message]', decodedData);
     } else {
-      console.log('接收到文本数据:', data);
+      console.log('[服务器.message]:', data);
     }
   })
 

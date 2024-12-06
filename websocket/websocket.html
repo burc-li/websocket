@@ -21,8 +21,6 @@
       import webSocketClient from 'webSocketClient'
       const ws = new webSocketClient('ws://localhost:3000')
 
-      ws.connect()
-
       ws.onopen(() => {
         console.log('WS 连接已经建立');
         ws.send('Hello, server!');
@@ -36,6 +34,12 @@
       ws.onclose(() => {
         console.log('WS 连接已经关闭');
       })
+
+      ws.connect()
+
+      setTimeout(() => {
+        ws.close()
+      }, 1000 * 60 * 10) // 10分钟后关闭websocket连接
     </script>
   </body>
 
