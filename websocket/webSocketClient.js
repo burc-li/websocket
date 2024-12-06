@@ -100,16 +100,16 @@ class WebSocketClient extends Dispatcher {
   handleReconnect() {
     if(this.reconnecting) return 
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      console.log('WebSocket', `尝试重连... (${this.reconnectAttempts}/${this.maxReconnectAttempts})       ${this.url}`)
       this.reconnectAttempts++
       this.reconnecting = true
+      console.log('WebSocket', `尝试重连... (${this.reconnectAttempts}/${this.maxReconnectAttempts})       ${this.url}`)
       this.reconnectTimer = setTimeout(() => {
         this.connect()
         this.reconnecting = false
       }, this.reconnectInterval)
     } else {
-      this.closeHeartbeat()
       console.log('WebSocket', `最大重连失败，终止重连: ${this.url}`)
+      this.close()
     }
   }
 
